@@ -100,7 +100,7 @@ footer{max-width:960px;margin:0 auto;padding:6px 16px 18px;color:var(--mut);font
 const DATA = window.APP_DATA;
 if(!DATA){ document.getElementById('view').innerHTML = '<div class="card"><h2>データを読み込めませんでした</h2><p>data.js が同じフォルダにあるか確認してください。</p></div>'; throw new Error('APP_DATA missing'); }
 const MODE_IDS = Object.keys(DATA.meta || {cdl:{}, genai:{}});
-const SHORTS = {cdl:'CDL', genai:'GenAI Leader', nlm:'NotebookLM', gcloud:'Google Cloud'};
+const SHORTS = {cdl:'CDL', genai:'GenAI Leader', nlm:'NotebookLM', gcloud:'Google Cloud', all:'全部統合'};
 function shortLabel(id){ const m = DATA.meta[id]||{}; return m.short || SHORTS[id] || id; }
 const LS_KEY = 'google-cloud-master:state:v1';
 const SCHEMA_VERSION = 2;
@@ -369,10 +369,14 @@ function renderPractice(){
 const isExam = () => !!M().mockDistribution;
 function buildMockIds(){
   if(!isExam()){
-    const total = Math.min(30, Qs().length); const qs = Qs();
+    const total = Math.min(M().mockTotal || 30, Qs().length); const qs = Qs();
     const secs = Object.keys(M().sections).filter(s=>qs.some(q=>q.section===s));
     let ids=[]; let assigned=0; const counts={};
-    secs.forEach((s,i)=>{ const c=qs.filter(q=>q.section===s).length; counts[s] = i===secs.length-1? total-assigned : Math.min(c, Math.round(total*c/qs.length)); assigned+=counts[s]; });
+    // 最大剰余方式でセクション比例配分（最後のセクションへの残余集中を防ぐ）
+    const quotas = secs.map(s=>{ const c=qs.filter(q=>q.section===s).length; return {s, c, q: total*c/qs.length}; });
+    quotas.forEach(o=>{ counts[o.s]=Math.min(o.c, Math.floor(o.q)); assigned+=counts[o.s]; });
+    let restN = total-assigned;
+    quotas.slice().sort((a,b)=>(b.q-Math.floor(b.q))-(a.q-Math.floor(a.q))).forEach(o=>{ if(restN>0 && counts[o.s]<o.c){ counts[o.s]++; restN--; } });
     secs.forEach(s=>{ ids = ids.concat(shuffle(qs.filter(q=>q.section===s)).slice(0, Math.max(0,counts[s])).map(q=>q.id)); });
     if(ids.length>total) ids=ids.slice(0,total);
     if(ids.length<total){ const rest=shuffle(qs.filter(q=>!ids.includes(q.id))); ids=ids.concat(rest.slice(0,total-ids.length).map(q=>q.id)); }
@@ -393,7 +397,7 @@ function renderMock(){
     const exam = isExam(); const saved = loadMockSession();
     viewEl.innerHTML = `<section class="card"><h2>${exam? '模試':'総合テスト'}（${esc(M().short)}）</h2>
     ${exam? `<p>55問 ・ 90分 ・ 配分：${Object.entries(M().mockDistribution).map(([s,n])=>`${s} ${n}問`).join(' / ')}</p><p class="mut">複数選択問題を含みます。</p>`
-    : `<p>${Math.min(30, Qs().length)}問 ・ 時間制限なし（目安60分） ・ 全セクションから配分抽選</p><p class="mut">合否ではなく正答率で結果を表示します。</p>`}
+    : `<p>${Math.min(M().mockTotal || 30, Qs().length)}問 ・ 時間制限なし（目安60分） ・ 全セクションから配分抽選</p><p class="mut">合否ではなく正答率で結果を表示します。</p>`}
     <div class="btnrow"><button class="btn" id="start">${exam? '模試':'総合テスト'}を開始する</button>${saved? '<button class="btn sec" id="resume">中断した回を再開する</button>':''}</div>
     ${state.mockHistory.filter(h=>h.mode===mode()).length? `<h3>履歴</h3><ul>${state.mockHistory.filter(h=>h.mode===mode()).slice(-5).reverse().map(h=>`<li>${esc(h.date)}：${h.correct}/${h.total}問（${h.score}%）</li>`).join('')}</ul>`:''}
     </section>`;
