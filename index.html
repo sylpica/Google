@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Google Cloud 資格学習マスター</title>
+<meta name="description" content="Cloud Digital Leader / Generative AI Leader 学習アプリ">
+<meta name="theme-color" content="#1a73e8">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+:root{--blue:#1a73e8;--blue-d:#1557b0;--ink:#202124;--mut:#5f6368;--line:#dadce0;--bg:#f8f9fa;--card:#fff;--ok:#137333;--okbg:#e6f4ea;--ng:#b3261e;--ngbg:#fce8e6;--warn:#b06000;--radius:12px}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;color:var(--ink);background:var(--bg);line-height:1.6;overflow-wrap:break-word;word-break:normal}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid #8ab4f8;outline-offset:2px}
+header.top{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.top-inner{max-width:960px;margin:0 auto;padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.app-title{font-size:17px;font-weight:700;margin:0;flex:1 1 200px;min-width:180px}
+.mode-switch{display:flex;flex-wrap:wrap;gap:0;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.mode-switch button{border:0;background:#fff;padding:8px 14px;min-width:110px;font-weight:600;color:var(--mut)}
+.mode-switch button[aria-pressed="true"]{background:var(--blue);color:#fff}
+nav.tabs{max-width:960px;margin:0 auto;padding:8px 16px 0;display:flex;flex-wrap:wrap;gap:8px}
+nav.tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;min-width:84px;flex:0 1 auto}
+nav.tabs button[aria-current="page"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+main{max-width:960px;margin:0 auto;padding:14px 16px 24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+h2{font-size:20px;margin:0 0 10px} h3{font-size:16px;margin:14px 0 6px}
+.mut{color:var(--mut);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{background:var(--bg);border-radius:10px;padding:12px}
+.stat b{font-size:22px;display:block}
+.bar{height:10px;background:#e8eaed;border-radius:99px;overflow:hidden;margin:6px 0 2px}
+.bar i{display:block;height:100%;background:var(--blue)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.chips button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;min-width:64px}
+.chips button[aria-pressed="true"]{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn{background:var(--blue);color:#fff;border:0;border-radius:8px;padding:10px 18px;font-weight:600;min-width:96px}
+.btn:hover{background:var(--blue-d)} .btn.sec{background:#fff;color:var(--ink);border:1px solid var(--line)} .btn:disabled{opacity:.5;cursor:not-allowed}
+.btnrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;align-items:center}
+.choice{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin:8px 0;background:#fff;width:100%;text-align:left}
+.choice input{margin-top:5px;flex:0 0 auto}
+.choice span{flex:1 1 auto;min-width:0}
+.choice.correct{border-color:var(--ok);background:var(--okbg)} .choice.wrong{border-color:var(--ng);background:var(--ngbg)}
+.feedback{border-radius:10px;padding:12px;margin-top:12px}
+.feedback.ok{background:var(--okbg)} .feedback.ng{background:var(--ngbg)}
+.qmeta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.tag{background:#e8f0fe;color:var(--blue-d);border-radius:99px;padding:2px 10px;font-size:13px;white-space:nowrap}
+input[type="search"],input[type="text"]{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;font:inherit}
+.term{border-bottom:1px solid var(--line);padding:10px 2px} .term:last-child{border-bottom:0}
+.term b{font-size:16px}
+.flash{min-height:220px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:10px;cursor:pointer;width:100%;background:#fff;border:2px solid var(--blue);border-radius:var(--radius);padding:20px}
+.flash .big{font-size:22px;font-weight:700}
+figure.diagram{margin:14px 0;background:#f1f6fe;border:1px solid #c2d7f5;border-radius:10px;padding:12px}
+figure.diagram svg{width:100%;height:auto;display:block}
+figure.diagram figcaption{font-size:14px;color:var(--ink);margin-top:8px}
+.lesson-item{display:flex;flex-wrap:wrap;gap:10px;align-items:center;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;margin:8px 0}
+.lesson-item span{flex:1 1 220px;min-width:200px}
+.timer{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.timer.low{color:var(--ng)}
+.overview{display:flex;flex-wrap:wrap;gap:6px}
+.overview button{width:40px;height:40px;border-radius:8px;border:1px solid var(--line);background:#fff;padding:0}
+.overview button.done{background:#e8f0fe;border-color:var(--blue)} .overview button.cur{outline:3px solid var(--blue)}
+table{border-collapse:collapse;width:100%} th,td{border:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+footer{max-width:960px;margin:0 auto;padding:10px 16px 30px;color:var(--mut);font-size:13px}
+.review{border-top:1px solid var(--line);padding:12px 0}
+@media (max-width:480px){.top-inner,main{padding-left:12px;padding-right:12px} nav.tabs{padding-left:12px;padding-right:12px} nav.tabs button{min-width:0;flex:1 1 30%} .mode-switch{width:100%} .mode-switch button{flex:1 1 45%;min-width:0} .btn{min-width:0;flex:1 1 auto} .flash .big{font-size:19px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <h1 class="app-title">Google Cloud 資格学習マスター</h1>
+    <div class="mode-switch" role="group" aria-label="資格モード切替">
+      <button type="button" id="mode-cdl">CDL</button>
+      <button type="button" id="mode-genai">Generative AI Leader</button>
+    </div>
+  </div>
+  <nav class="tabs" aria-label="主要メニュー" id="tabs"></nav>
+</header>
+<main id="view" tabindex="-1"></main>
+<footer>
+  <p>本アプリの問題・解説は公式試験ガイドの範囲に基づくオリジナル作成です。Google Cloud の公式合格点は公開されていないため、模試の70%は学習上の目安です。製品名・資格名は各権利者の商標です。本アプリは Google とは関係のない学習支援ツールです。</p>
+</footer>
+<script src="data.js"></script>
+<script>
+"use strict";
+const DATA = window.APP_DATA;
+if(!DATA){ document.getElementById('view').innerHTML = '<div class="card"><h2>データを読み込めませんでした</h2><p>data.js が同じフォルダにあるか確認してください。</p></div>'; throw new Error('APP_DATA missing'); }
+const LS_KEY = 'google-cloud-master:state:v1';
+const VIEWS = [['dashboard','ダッシュボード'],['lessons','レッスン'],['practice','問題演習'],['mock','模試'],['glossary','用語集'],['cards','フラッシュカード']];
+let state = loadState();
+let view = 'dashboard';
+let practice = {section:'ALL', idx:0, checked:false, selected:[]};
+let mock = null; // {ids, answers:{}, idx, endsAt, timerId, submitted, result}
+let cardState = {section:'ALL', idx:0, flipped:false};
+let glossary = {q:'', section:'ALL'};
+let currentLesson = null;
+
+function defaultState(){ return {mode:'cdl', answers:{cdl:{},genai:{}}, known:{cdl:[],genai:[]}, mockHistory:[], lessonsRead:{cdl:[],genai:[]}}; }
+function loadState(){ try{ const s = JSON.parse(localStorage.getItem(LS_KEY)); if(s && s.mode && s.answers) return Object.assign(defaultState(), s); }catch(e){} return defaultState(); }
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+const mode = () => state.mode;
+const M = () => DATA.meta[mode()];
+const Qs = () => DATA[mode()].questions;
+const Ts = () => DATA[mode()].terms;
+const Ls = () => DATA[mode()].lessons;
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function isCorrect(q, sel){ const ans = Array.isArray(q.answer)? q.answer : [q.answer]; const s = (sel||[]).slice().sort((x,y)=>x-y); return s.length===ans.length && s.every((v,i)=>v===ans.slice().sort((x,y)=>x-y)[i]); }
+function ansText(q){ const ans = Array.isArray(q.answer)? q.answer : [q.answer]; return ans.map(i=>q.choices[i]).join(' / '); }
+
+/* ---------- diagram ---------- */
+function diagramSVG(caption){
+  const c = caption;
+  let boxes = null, kind = 'branch';
+  if(/比較|オンプレミス.*クラウド|違い/.test(c)){ kind='compare'; boxes=['オンプレミス','クラウド']; }
+  else if(/階層|ヒエラルキー|リソース階層/.test(c)){ kind='stack'; boxes=['組織','フォルダ','プロジェクト','リソース']; }
+  else if(/層|レイヤー|landscape|スタック/.test(c)){ kind='stack'; boxes = (c.match(/インフラ|モデル|プラットフォーム|エージェント|アプリ/) ? ['アプリケーション','エージェント','プラットフォーム','モデル','インフラ'] : ['アプリ層','プラットフォーム層','データ層','インフラ層']); }
+  else if(/ライフサイクル|サイクル|循環/.test(c)){ kind='flow'; boxes=['データ収集','前処理','学習','デプロイ','運用・監視']; }
+  else if(/RAG|検索拡張|グラウンディング|grounding/i.test(c)){ kind='flow'; boxes=['質問','検索（根拠）','基盤モデル','根拠付き回答']; }
+  else if(/フロー|流れ|パイプライン|サプライチェーン|手順|ステップ|移行/.test(c)){ kind='flow'; boxes=['入力','処理','保存・分析','活用']; }
+  else if(/セキュリティ|防御|多層|責任共有/.test(c)){ kind='stack'; boxes=['アプリ / エージェント','プラットフォーム','データ','インフラ']; }
+  else { const words = c.split(/[、・／\/とやからへにをはがの]/).map(x=>x.trim()).filter(x=>x.length>=2 && x.length<=10).slice(0,4); boxes = words.length>=3 ? words : ['概念','仕組み','活用','効果']; }
+  let inner='';
+  if(kind==='stack'){
+    boxes.forEach((b,i)=>{ const y=12+i*44; inner += `<rect x="90" y="${y}" width="220" height="36" rx="8" fill="${i%2?'#a8c7fa':'#d3e3fd'}" stroke="#1a73e8"/><text x="200" y="${y+23}" text-anchor="middle" font-size="14" fill="#202124">${esc(b)}</text>`; });
+    return `<svg viewBox="0 0 400 ${boxes.length*44+16}" role="img" aria-label="${esc(caption)}">${inner}</svg>`;
+  }
+  if(kind==='compare'){
+    inner = `<rect x="20" y="30" width="165" height="80" rx="10" fill="#fce8e6" stroke="#b3261e"/><text x="102" y="65" text-anchor="middle" font-size="15" fill="#202124">${esc(boxes[0])}</text><text x="102" y="90" text-anchor="middle" font-size="12" fill="#5f6368">所有・運用負荷大</text><rect x="215" y="30" width="165" height="80" rx="10" fill="#e6f4ea" stroke="#137333"/><text x="297" y="65" text-anchor="middle" font-size="15" fill="#202124">${esc(boxes[1])}</text><text x="297" y="90" text-anchor="middle" font-size="12" fill="#5f6368">利用・拡張が容易</text><text x="200" y="76" text-anchor="middle" font-size="16" fill="#202124">→</text>`;
+    return `<svg viewBox="0 0 400 140" role="img" aria-label="${esc(caption)}">${inner}</svg>`;
+  }
+  if(kind==='flow'){
+    const w = Math.floor(380/boxes.length);
+    boxes.forEach((b,i)=>{ const x=10+i*w; inner += `<rect x="${x}" y="35" width="${w-10}" height="52" rx="9" fill="#d3e3fd" stroke="#1a73e8"/><text x="${x+(w-10)/2}" y="66" text-anchor="middle" font-size="12.5" fill="#202124">${esc(b)}</text>` + (i<boxes.length-1?`<text x="${x+w-6}" y="66" font-size="14" fill="#202124">›</text>`:''); });
+    return `<svg viewBox="0 0 400 120" role="img" aria-label="${esc(caption)}">${inner}</svg>`;
+  }
+  inner = `<circle cx="200" cy="70" r="30" fill="#1a73e8"/><text x="200" y="75" text-anchor="middle" font-size="13" fill="#fff">中核</text>`;
+  boxes.slice(0,4).forEach((b,i)=>{ const pos=[[55,25],[290,25],[55,105],[290,105]][i]; inner += `<line x1="200" y1="70" x2="${pos[0]+45}" y2="${pos[1]+14}" stroke="#1a73e8"/><rect x="${pos[0]}" y="${pos[1]}" width="90" height="28" rx="8" fill="#d3e3fd" stroke="#1a73e8"/><text x="${pos[0]+45}" y="${pos[1]+19}" text-anchor="middle" font-size="12" fill="#202124">${esc(b)}</text>`; });
+  return `<svg viewBox="0 0 400 150" role="img" aria-label="${esc(caption)}">${inner}</svg>`;
+}
+function renderBody(body){
+  const parts = String(body).split(/(\[図:[^\]]+\])/g);
+  let html='';
+  for(const part of parts){
+    const fm = part.match(/^\[図:\s*(.+)\]$/);
+    if(fm){ html += `<figure class="diagram">${diagramSVG(fm[1])}<figcaption>図：${esc(fm[1])}</figcaption></figure>`; continue; }
+    for(const block of part.split(/\n{2,}/)){
+      const lines = block.split(/\n/).map(x=>x.trim()).filter(Boolean);
+      if(!lines.length) continue;
+      if(lines.length===1 && lines[0].startsWith('## ')){ html += `<h3>${esc(lines[0].slice(3))}</h3>`; continue; }
+      if(lines.every(l=>l.startsWith('- '))){ html += '<ul>' + lines.map(l=>`<li>${esc(l.slice(2))}</li>`).join('') + '</ul>'; continue; }
+      // mixed block: headings/lists inline
+      let buf=[];
+      const flush=()=>{ if(buf.length){ html += `<p>${esc(buf.join(' '))}</p>`; buf=[]; } };
+      for(const l of lines){
+        if(l.startsWith('## ')){ flush(); html += `<h3>${esc(l.slice(3))}</h3>`; }
+        else if(l.startsWith('- ')){ flush(); html += `<ul><li>${esc(l.slice(2))}</li></ul>`; }
+        else buf.push(l);
+      } flush();
+    }
+  }
+  return html;
+}
+
+/* ---------- shell ---------- */
+const viewEl = document.getElementById('view');
+const tabsEl = document.getElementById('tabs');
+function renderTabs(){
+  document.getElementById('mode-cdl').setAttribute('aria-pressed', mode()==='cdl');
+  document.getElementById('mode-genai').setAttribute('aria-pressed', mode()==='genai');
+  tabsEl.innerHTML = VIEWS.map(([k,label])=>`<button type="button" data-view="${k}" ${view===k?'aria-current="page"':''}>${label}</button>`).join('');
+  tabsEl.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{ view=b.dataset.view; currentLesson=null; render(); }));
+}
+document.getElementById('mode-cdl').addEventListener('click',()=>setMode('cdl'));
+document.getElementById('mode-genai').addEventListener('click',()=>setMode('genai'));
+function setMode(m){ if(state.mode===m) return; state.mode=m; save(); practice={section:'ALL',idx:0,checked:false,selected:[]}; cardState={section:'ALL',idx:0,flipped:false}; glossary={q:'',section:'ALL'}; currentLesson=null; stopMockTimer(); mock=null; render(); }
+function sectionChips(current, onAll){
+  const secs = Object.keys(M().sections);
+  return `<div class="chips" role="group" aria-label="セクション絞り込み"><button type="button" data-sec="ALL" aria-pressed="${current==='ALL'}">すべて</button>${secs.map(s=>`<button type="button" data-sec="${s}" aria-pressed="${current===s}">${s} ${esc(M().sections[s])}</button>`).join('')}</div>`;
+}
+function bindChips(cb){ viewEl.querySelectorAll('[data-sec]').forEach(b=>b.addEventListener('click',()=>cb(b.dataset.sec))); }
+function render(){ renderTabs(); ({dashboard:renderDashboard, lessons:renderLessons, practice:renderPractice, mock:renderMock, glossary:renderGlossary, cards:renderCards}[view]||renderDashboard)(); }
+
+/* ---------- dashboard ---------- */
+function sectionStats(){
+  return Object.keys(M().sections).map(s=>{
+    const qs = Qs().filter(q=>q.section===s); const rec = state.answers[mode()];
+    let done=0, ok=0; qs.forEach(q=>{ if(rec[q.id]){ done++; if(rec[q.id].correct) ok++; } });
+    return {s, total:qs.length, done, ok, rate: done? Math.round(ok/done*100):0, cover: Math.round(done/qs.length*100)};
+  });
+}
+function renderDashboard(){
+  const st = sectionStats(); const done = st.reduce((a,x)=>a+x.done,0), ok = st.reduce((a,x)=>a+x.ok,0);
+  const known = state.known[mode()].length;
+  const lastMock = state.mockHistory.filter(h=>h.mode===mode()).slice(-1)[0];
+  viewEl.innerHTML = `<section class="card"><h2>${esc(M().label)}</h2>
+  <div class="grid">
+    <div class="stat"><span class="mut">演習 回答済み</span><b>${done} / ${Qs().length}</b><span class="mut">${done? '正答率 '+Math.round(ok/done*100)+'%':''}</span></div>
+    <div class="stat"><span class="mut">覚えたカード</span><b>${known} / ${Ts().length}</b></div>
+    <div class="stat"><span class="mut">レッスン</span><b>${Ls().length} 本</b><span class="mut">読了 ${state.lessonsRead[mode()].length} 本</span></div>
+    <div class="stat"><span class="mut">直近の模試</span><b>${lastMock? lastMock.score+'%':'—'}</b><span class="mut">${lastMock? esc(lastMock.date):'未受験'}</span></div>
+  </div></section>
+  <section class="card"><h3>セクション別 演習進捗</h3>
+  ${st.map(x=>`<div><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between"><span>${x.s} ${esc(M().sections[x.s])}</span><span class="mut">${x.done}/${x.total}問 ・ 正答率 ${x.rate}%</span></div><div class="bar" role="progressbar" aria-valuenow="${x.cover}" aria-valuemin="0" aria-valuemax="100" aria-label="${x.s} 進捗"><i style="width:${x.cover}%"></i></div></div>`).join('')}
+  <div class="btnrow"><button class="btn" id="go-practice">問題演習へ</button><button class="btn sec" id="go-mock">模試を受ける</button></div></section>`;
+  document.getElementById('go-practice').addEventListener('click',()=>{view='practice';render();});
+  document.getElementById('go-mock').addEventListener('click',()=>{view='mock';render();});
+}
+
+/* ---------- lessons ---------- */
+function renderLessons(){
+  if(currentLesson){
+    const l = currentLesson;
+    viewEl.innerHTML = `<section class="card"><button class="btn sec" id="back">← レッスン一覧</button>
+    <div class="qmeta" style="margin-top:12px"><span class="tag">${l.section} ${esc(M().sections[l.section]||'')}</span></div>
+    <h2>${esc(l.title)}</h2>${renderBody(l.body)}
+    ${l.keyPoints && l.keyPoints.length? `<h3>要点</h3><ul>${l.keyPoints.map(k=>`<li>${esc(k)}</li>`).join('')}</ul>`:''}
+    <div class="btnrow"><button class="btn" id="read-btn">${state.lessonsRead[mode()].includes(l.id)?'読了済み ✓':'読了にする'}</button></div></section>`;
+    document.getElementById('back').addEventListener('click',()=>{currentLesson=null;render();});
+    document.getElementById('read-btn').addEventListener('click',()=>{ const arr=state.lessonsRead[mode()]; if(!arr.includes(l.id)){arr.push(l.id); save();} render(); });
+    return;
+  }
+  viewEl.innerHTML = `<section class="card"><h2>レッスン（${Ls().length}本）</h2>
+  ${Ls().map(l=>`<button type="button" class="lesson-item" data-lesson="${esc(l.id)}"><span><b>${esc(l.title)}</b><br><span class="mut">${l.section} ${esc(M().sections[l.section]||'')}</span></span>${state.lessonsRead[mode()].includes(l.id)?'<span class="tag">読了</span>':''}</button>`).join('')}</section>`;
+  viewEl.querySelectorAll('[data-lesson]').forEach(b=>b.addEventListener('click',()=>{ currentLesson = Ls().find(x=>x.id===b.dataset.lesson); render(); viewEl.focus(); }));
+}
+
+/* ---------- practice ---------- */
+function practiceList(){ return practice.section==='ALL'? Qs() : Qs().filter(q=>q.section===practice.section); }
+function renderPractice(){
+  const list = practiceList();
+  if(!list.length){ viewEl.innerHTML = `<section class="card"><h2>問題演習</h2>${sectionChips(practice.section)}<p>該当する問題がありません。</p></section>`; bindChips(s=>{practice.section=s;practice.idx=0;practice.checked=false;practice.selected=[];render();}); return; }
+  practice.idx = Math.min(practice.idx, list.length-1);
+  const q = list[practice.idx];
+  const rec = state.answers[mode()][q.id];
+  const selected = practice.checked && rec ? rec.selected : practice.selected;
+  const inputType = q.multi? 'checkbox':'radio';
+  viewEl.innerHTML = `<section class="card"><h2>問題演習</h2>${sectionChips(practice.section)}
+  <div class="qmeta"><span class="tag">${q.section} ${esc(M().sections[q.section]||'')}</span><span class="mut">${practice.idx+1} / ${list.length} 問</span>${q.multi?'<span class="tag">複数選択</span>':''}${rec?'<span class="tag">回答済み</span>':''}</div>
+  <p style="font-size:17px"><b>${esc(q.question)}</b></p>
+  <form id="pform">${q.choices.map((c,i)=>`<label class="choice ${practice.checked? ( (Array.isArray(q.answer)?q.answer:[q.answer]).includes(i)?'correct': (selected.includes(i)?'wrong':'')):''}"><input type="${inputType}" name="choice" value="${i}" ${selected.includes(i)?'checked':''} ${practice.checked?'disabled':''}><span>${esc(c)}</span></label>`).join('')}
+  ${practice.checked? `<div class="feedback ${isCorrect(q,selected)?'ok':'ng'}" role="status"><b>${isCorrect(q,selected)?'正解です':'不正解です'}</b><br>正解：${esc(ansText(q))}<br>${esc(q.explanation)}</div>`:''}
+  <div class="btnrow">
+    <button type="button" class="btn sec" id="prev" ${practice.idx===0?'disabled':''}>前へ</button>
+    ${practice.checked? '<button type="button" class="btn sec" id="retry">解き直す</button>' : '<button type="submit" class="btn">回答する</button>'}
+    <button type="button" class="btn sec" id="next" ${practice.idx>=list.length-1?'disabled':''}>次へ</button>
+  </div></form></section>`;
+  bindChips(s=>{practice.section=s;practice.idx=0;practice.checked=false;practice.selected=[];render();});
+  viewEl.querySelectorAll('input[name="choice"]').forEach(inp=>inp.addEventListener('change',()=>{
+    const vals = [...viewEl.querySelectorAll('input[name="choice"]:checked')].map(x=>Number(x.value));
+    practice.selected = q.multi? vals : vals.slice(0,1);
+  }));
+  document.getElementById('pform').addEventListener('submit',e=>{
+    e.preventDefault();
+    if(!practice.selected.length){ alert('選択肢を選んでください。'); return; }
+    const correct = isCorrect(q, practice.selected);
+    state.answers[mode()][q.id] = {selected: practice.selected.slice(), correct};
+    save(); practice.checked = true; render();
+  });
+  const prev=document.getElementById('prev'), next=document.getElementById('next'), retry=document.getElementById('retry');
+  if(prev) prev.addEventListener('click',()=>{practice.idx--; practice.checked=!!state.answers[mode()][list[practice.idx].id]; practice.selected=[]; render();});
+  if(next) next.addEventListener('click',()=>{practice.idx++; practice.checked=!!state.answers[mode()][list[practice.idx].id]; practice.selected=[]; render();});
+  if(retry) retry.addEventListener('click',()=>{practice.checked=false; practice.selected=[]; render();});
+}
+
+/* ---------- mock ---------- */
+function buildMockIds(){
+  const dist = M().mockDistribution; let ids=[];
+  for(const s of Object.keys(dist)){ ids = ids.concat(shuffle(Qs().filter(q=>q.section===s)).slice(0, dist[s]).map(q=>q.id)); }
+  return shuffle(ids);
+}
+function stopMockTimer(){ if(mock && mock.timerId){ clearInterval(mock.timerId); mock.timerId=null; } }
+function renderMock(){
+  if(!mock){
+    viewEl.innerHTML = `<section class="card"><h2>模試（${esc(M().short)}）</h2>
+    <p>55問 ・ 90分 ・ 配分：${Object.entries(M().mockDistribution).map(([s,n])=>`${s} ${n}問`).join(' / ')}</p>
+    <p class="mut">複数選択問題を含みます。途中で中断すると模試は破棄されます。</p>
+    <div class="btnrow"><button class="btn" id="start">模試を開始する</button></div>
+    ${state.mockHistory.filter(h=>h.mode===mode()).length? `<h3>履歴</h3><ul>${state.mockHistory.filter(h=>h.mode===mode()).slice(-5).reverse().map(h=>`<li>${esc(h.date)}：${h.correct}/${h.total}問（${h.score}%）</li>`).join('')}</ul>`:''}
+    </section>`;
+    document.getElementById('start').addEventListener('click',()=>{
+      mock = {ids: buildMockIds(), answers:{}, idx:0, endsAt: Date.now()+90*60*1000, submitted:false, result:null, timerId:null};
+      mock.timerId = setInterval(()=>{ const el=document.getElementById('timer'); if(!el){ stopMockTimer(); return; } const left = mock.endsAt - Date.now(); if(left<=0){ submitMock(true); return; } el.textContent = fmtTime(left); el.classList.toggle('low', left<5*60*1000); }, 500);
+      render();
+    });
+    return;
+  }
+  if(mock.submitted){ renderMockResult(); return; }
+  const q = Qs().find(x=>x.id===mock.ids[mock.idx]);
+  const sel = mock.answers[q.id]||[];
+  const inputType = q.multi? 'checkbox':'radio';
+  viewEl.innerHTML = `<section class="card">
+  <div class="qmeta"><span class="timer" id="timer">${fmtTime(mock.endsAt-Date.now())}</span><span class="mut">残り時間</span><span class="tag">${q.section}</span><span class="mut">${mock.idx+1} / ${mock.ids.length} 問</span>${q.multi?'<span class="tag">複数選択</span>':''}</div>
+  <p style="font-size:17px"><b>${esc(q.question)}</b></p>
+  ${q.choices.map((c,i)=>`<label class="choice"><input type="${inputType}" name="mchoice" value="${i}" ${sel.includes(i)?'checked':''}><span>${esc(c)}</span></label>`).join('')}
+  <div class="btnrow"><button class="btn sec" id="mprev" ${mock.idx===0?'disabled':''}>前へ</button><button class="btn sec" id="mnext" ${mock.idx>=mock.ids.length-1?'disabled':''}>次へ</button><button class="btn" id="msubmit">提出する</button></div>
+  <h3>問題一覧</h3><div class="overview">${mock.ids.map((id,i)=>`<button type="button" data-midx="${i}" class="${mock.answers[id] && mock.answers[id].length?'done':''} ${i===mock.idx?'cur':''}" aria-label="${i+1}問目へ">${i+1}</button>`).join('')}</div>
+  </section>`;
+  viewEl.querySelectorAll('input[name="mchoice"]').forEach(inp=>inp.addEventListener('change',()=>{
+    const vals=[...viewEl.querySelectorAll('input[name="mchoice"]:checked')].map(x=>Number(x.value));
+    mock.answers[q.id] = q.multi? vals : vals.slice(0,1); render();
+  }));
+  viewEl.querySelectorAll('[data-midx]').forEach(b=>b.addEventListener('click',()=>{mock.idx=Number(b.dataset.midx); render();}));
+  document.getElementById('mprev').addEventListener('click',()=>{mock.idx--; render();});
+  document.getElementById('mnext').addEventListener('click',()=>{mock.idx++; render();});
+  document.getElementById('msubmit').addEventListener('click',()=>{ if(confirm('模試を提出しますか？')) submitMock(false); });
+}
+function fmtTime(ms){ ms=Math.max(0,ms); const s=Math.ceil(ms/1000); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+function submitMock(timeout){
+  stopMockTimer();
+  let correct=0; const per={};
+  mock.ids.forEach(id=>{ const q=Qs().find(x=>x.id===id); const ok=isCorrect(q, mock.answers[id]||[]); if(ok) correct++; per[q.section]=per[q.section]||{n:0,ok:0}; per[q.section].n++; if(ok) per[q.section].ok++; });
+  const score = Math.round(correct/mock.ids.length*100);
+  mock.submitted = true; mock.result = {correct, score, per, timeout:!!timeout};
+  state.mockHistory.push({mode:mode(), date:new Date().toLocaleString('ja-JP'), correct, total:mock.ids.length, score});
+  save(); render();
+}
+function renderMockResult(){
+  const r = mock.result;
+  viewEl.innerHTML = `<section class="card"><h2>模試結果${r.timeout?'（時間切れ）':''}</h2>
+  <p style="font-size:20px"><b>${r.correct} / ${mock.ids.length} 問 ・ ${r.score}%</b>　${r.score>=70? '合格目安（70%）以上です' : '合格目安（70%）まであと少しです'}</p>
+  <table><thead><tr><th>セクション</th><th>正解 / 出題</th><th>正答率</th></tr></thead><tbody>
+  ${Object.keys(M().sections).filter(s=>r.per[s]).map(s=>`<tr><td>${s} ${esc(M().sections[s])}</td><td>${r.per[s].ok} / ${r.per[s].n}</td><td>${Math.round(r.per[s].ok/r.per[s].n*100)}%</td></tr>`).join('')}
+  </tbody></table>
+  <div class="btnrow"><button class="btn sec" id="again">模試トップへ</button></div></section>
+  <section class="card"><h2>全問レビュー</h2>
+  ${mock.ids.map((id,i)=>{ const q=Qs().find(x=>x.id===id); const sel=mock.answers[id]||[]; const ok=isCorrect(q,sel); return `<div class="review"><div class="qmeta"><span class="tag">${q.section}</span><span class="tag">${ok?'正解':'不正解'}</span></div><p><b>${i+1}. ${esc(q.question)}</b></p><p>あなたの回答：${sel.length? sel.map(x=>esc(q.choices[x])).join(' / '):'（無回答）'}<br>正解：${esc(ansText(q))}<br><span class="mut">${esc(q.explanation)}</span></p></div>`; }).join('')}
+  </section>`;
+  document.getElementById('again').addEventListener('click',()=>{ mock=null; render(); });
+}
+
+/* ---------- glossary ---------- */
+function renderGlossary(){
+  const list = Ts().filter(t=> (glossary.section==='ALL'||t.section===glossary.section) && (!glossary.q || (t.term+' '+(t.reading||'')+' '+t.definition).toLowerCase().includes(glossary.q.toLowerCase())));
+  viewEl.innerHTML = `<section class="card"><h2>用語集（${Ts().length}語）</h2>
+  <label class="mut" for="gq">検索</label><input type="search" id="gq" value="${esc(glossary.q)}" placeholder="用語・読み・説明で検索" autocomplete="off">
+  ${sectionChips(glossary.section)}
+  <p class="mut">${list.length} 件</p>
+  ${list.map(t=>`<div class="term"><b>${esc(t.term)}</b>${t.reading?` <span class="mut">（${esc(t.reading)}）</span>`:''} <span class="tag">${t.section}</span><br>${esc(t.definition)}</div>`).join('') || '<p>該当する用語がありません。</p>'}
+  </section>`;
+  const input=document.getElementById('gq');
+  input.addEventListener('input',()=>{ glossary.q=input.value; const pos=input.selectionStart; renderGlossary(); const n=document.getElementById('gq'); n.focus(); n.setSelectionRange(pos,pos); });
+  bindChips(s=>{glossary.section=s; render();});
+}
+
+/* ---------- flashcards ---------- */
+function cardList(){ return cardState.section==='ALL'? Ts() : Ts().filter(t=>t.section===cardState.section); }
+function renderCards(){
+  const list = cardList();
+  if(!list.length){ viewEl.innerHTML = `<section class="card"><h2>フラッシュカード</h2>${sectionChips(cardState.section)}<p>該当する用語がありません。</p></section>`; bindChips(s=>{cardState.section=s;cardState.idx=0;cardState.flipped=false;render();}); return; }
+  cardState.idx = Math.min(cardState.idx, list.length-1);
+  const t = list[cardState.idx]; const known = state.known[mode()].includes(t.term);
+  viewEl.innerHTML = `<section class="card"><h2>フラッシュカード</h2>${sectionChips(cardState.section)}
+  <p class="mut">${cardState.idx+1} / ${list.length} ・ 覚えた ${state.known[mode()].length} 語 ・ カードをタップ（または Enter / Space）で反転</p>
+  <button type="button" class="flash" id="flash" aria-label="フラッシュカードを反転">
+    ${cardState.flipped? `<span class="mut">${t.section} ${esc(M().sections[t.section]||'')}</span><span>${esc(t.definition)}</span>` : `<span class="big">${esc(t.term)}</span>${t.reading?`<span class="mut">${esc(t.reading)}</span>`:''}<span class="tag">${t.section}</span>`}
+  </button>
+  <div class="btnrow">
+    <button class="btn sec" id="cprev" ${cardState.idx===0?'disabled':''}>前へ</button>
+    <button class="btn sec" id="cshuffle">シャッフル</button>
+    <button class="btn" id="cknown" aria-pressed="${known}">${known?'覚えた ✓（解除）':'覚えたにする'}</button>
+    <button class="btn sec" id="cnext" ${cardState.idx>=list.length-1?'disabled':''}>次へ</button>
+  </div></section>`;
+  bindChips(s=>{cardState.section=s;cardState.idx=0;cardState.flipped=false;render();});
+  document.getElementById('flash').addEventListener('click',()=>{cardState.flipped=!cardState.flipped; render(); document.getElementById('flash').focus();});
+  document.getElementById('cprev').addEventListener('click',()=>{cardState.idx--; cardState.flipped=false; render();});
+  document.getElementById('cnext').addEventListener('click',()=>{cardState.idx++; cardState.flipped=false; render();});
+  document.getElementById('cshuffle').addEventListener('click',()=>{ cardState.idx = Math.floor(Math.random()*list.length); cardState.flipped=false; render(); });
+  document.getElementById('cknown').addEventListener('click',()=>{ const arr=state.known[mode()]; const i=arr.indexOf(t.term); if(i>=0) arr.splice(i,1); else arr.push(t.term); save(); render(); });
+}
+
+render();
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+</script>
+</body>
+</html>
