@@ -79,6 +79,21 @@ footer{max-width:960px;margin:0 auto;padding:6px 16px 18px;color:var(--mut);font
 .bmbtn[aria-pressed="true"]{background:var(--tagbg);border-color:var(--warn)}
 .listrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;width:100%;text-align:left;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:7px 10px;margin:5px 0}
 .listrow span{flex:1 1 200px;min-width:160px}
+.term-link{color:var(--blue-d);border-bottom:1px dotted var(--blue);cursor:pointer}
+.term-mark{border-bottom:1px dotted var(--mut)}
+.flash{touch-action:pan-y}
+.srcnote{margin-top:10px;font-size:12px}
+.lesson-meta{background:var(--bg);border-radius:8px;padding:8px 10px;margin:8px 0;font-size:13.5px}
+.lesson-meta p{margin:3px 0}
+.lesson-meta ul{margin:2px 0;padding-left:18px}
+.lesson-meta li{margin:1px 0}
+.misconceptions{font-size:13.5px;margin-top:10px}
+.misconceptions ul{margin:3px 0;padding-left:18px}
+.misconceptions li{margin:1px 0}
+.modal-back{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:50}
+.modal-back[hidden]{display:none}
+.modal-sheet{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px 14px 0 0;max-width:640px;width:100%;max-height:82vh;overflow:auto;padding:16px}
+@media (min-width:640px){.modal-back{align-items:center;padding:16px}.modal-sheet{border-radius:14px}}
 @media (max-width:480px){.top-inner,main{padding-left:12px;padding-right:12px} nav.tabs{padding-left:12px;padding-right:12px} .app-title{font-size:13.5px} .mode-switch button{padding:3px 7px;font-size:12.5px} nav.tabs button{padding:3px 8px;font-size:12.5px} .btn{min-width:0;flex:1 1 auto} .flash .big{font-size:18px} .card{padding:10px} .grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
@@ -94,6 +109,15 @@ footer{max-width:960px;margin:0 auto;padding:6px 16px 18px;color:var(--mut);font
 <footer>
   <p>本アプリの問題・解説は公式試験ガイドの範囲に基づくオリジナル作成です。Google Cloud の公式合格点は公開されていないため、模試の70%は学習上の目安です。製品名・資格名は各権利者の商標です。本アプリは Google とは関係のない学習支援ツールです。</p>
 </footer>
+<div id="term-modal" class="modal-back" hidden>
+  <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="tm-title">
+    <div class="qmeta"><span class="tag" id="tm-sec"></span></div>
+    <h2 id="tm-title"></h2>
+    <p class="mut" id="tm-reading"></p>
+    <p id="tm-def"></p>
+    <div class="btnrow"><button type="button" class="btn sec" id="tm-glossary">用語集で開く</button><button type="button" class="btn" id="tm-close">閉じる</button></div>
+  </div>
+</div>
 <script src="data.js"></script>
 <script>
 "use strict";
@@ -115,9 +139,9 @@ let glossary = {q:'', section:'ALL'};
 let currentLesson = null;
 
 function perMode(make){ const o={}; MODE_IDS.forEach(id=>{ o[id]=make(); }); return o; }
-function defaultState(){ return {schemaVersion:SCHEMA_VERSION, mode:'cdl', answers:perMode(()=>({})), known:perMode(()=>[]), mockHistory:[], lessonsRead:perMode(()=>[]), settings:{theme:'system', startMode:'last', shuffleChoices:false}, bookmarks:perMode(()=>[]), mistakes:perMode(()=>[]), srs:perMode(()=>({})), first:perMode(()=>({})), attempts:perMode(()=>({})), cardLevel:perMode(()=>({}))}; }
+function defaultState(){ return {schemaVersion:SCHEMA_VERSION, mode:'cdl', answers:perMode(()=>({})), known:perMode(()=>[]), mockHistory:[], lessonsRead:perMode(()=>[]), settings:{theme:'system', startMode:'last', shuffleChoices:false, cardStart:'front'}, bookmarks:perMode(()=>[]), mistakes:perMode(()=>[]), srs:perMode(()=>({})), first:perMode(()=>({})), attempts:perMode(()=>({})), cardLevel:perMode(()=>({}))}; }
 function backupCorrupt(raw){ try{ if(raw && !localStorage.getItem(BACKUP_KEY)) localStorage.setItem(BACKUP_KEY, raw); }catch(e){} }
-function loadState(){ const d = defaultState(); let raw=null; try{ raw = localStorage.getItem(LS_KEY); const s = raw? JSON.parse(raw): null; if(s && s.mode && s.answers){ const merged = Object.assign(d, s); merged.schemaVersion = SCHEMA_VERSION; merged.settings = Object.assign({theme:'system', startMode:'last', shuffleChoices:false}, s.settings||{}); MODE_IDS.forEach(id=>{ merged.answers[id] = (s.answers && s.answers[id] && typeof s.answers[id]==='object')? s.answers[id]:{}; merged.known[id] = (s.known && Array.isArray(s.known[id]))? s.known[id]:[]; merged.lessonsRead[id] = (s.lessonsRead && Array.isArray(s.lessonsRead[id]))? s.lessonsRead[id]:[]; merged.bookmarks[id] = (s.bookmarks && Array.isArray(s.bookmarks[id]))? s.bookmarks[id]:[]; merged.mistakes[id] = (s.mistakes && Array.isArray(s.mistakes[id]))? s.mistakes[id]:[]; merged.srs[id] = (s.srs && s.srs[id] && typeof s.srs[id]==='object')? s.srs[id]:{}; merged.first[id] = (s.first && s.first[id] && typeof s.first[id]==='object')? s.first[id]:{}; merged.attempts[id] = (s.attempts && s.attempts[id] && typeof s.attempts[id]==='object')? s.attempts[id]:{}; merged.cardLevel[id] = (s.cardLevel && s.cardLevel[id] && typeof s.cardLevel[id]==='object')? s.cardLevel[id]:{}; }); if(!Array.isArray(merged.mockHistory)) merged.mockHistory=[]; return merged; } if(raw) backupCorrupt(raw); }catch(e){ backupCorrupt(raw); } return d; }
+function loadState(){ const d = defaultState(); let raw=null; try{ raw = localStorage.getItem(LS_KEY); const s = raw? JSON.parse(raw): null; if(s && s.mode && s.answers){ const merged = Object.assign(d, s); merged.schemaVersion = SCHEMA_VERSION; merged.settings = Object.assign({theme:'system', startMode:'last', shuffleChoices:false, cardStart:'front'}, s.settings||{}); MODE_IDS.forEach(id=>{ merged.answers[id] = (s.answers && s.answers[id] && typeof s.answers[id]==='object')? s.answers[id]:{}; merged.known[id] = (s.known && Array.isArray(s.known[id]))? s.known[id]:[]; merged.lessonsRead[id] = (s.lessonsRead && Array.isArray(s.lessonsRead[id]))? s.lessonsRead[id]:[]; merged.bookmarks[id] = (s.bookmarks && Array.isArray(s.bookmarks[id]))? s.bookmarks[id]:[]; merged.mistakes[id] = (s.mistakes && Array.isArray(s.mistakes[id]))? s.mistakes[id]:[]; merged.srs[id] = (s.srs && s.srs[id] && typeof s.srs[id]==='object')? s.srs[id]:{}; merged.first[id] = (s.first && s.first[id] && typeof s.first[id]==='object')? s.first[id]:{}; merged.attempts[id] = (s.attempts && s.attempts[id] && typeof s.attempts[id]==='object')? s.attempts[id]:{}; merged.cardLevel[id] = (s.cardLevel && s.cardLevel[id] && typeof s.cardLevel[id]==='object')? s.cardLevel[id]:{}; }); if(!Array.isArray(merged.mockHistory)) merged.mockHistory=[]; return merged; } if(raw) backupCorrupt(raw); }catch(e){ backupCorrupt(raw); } return d; }
 function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
 /* settings: theme + start mode */
 if(MODE_IDS.includes(state.settings.startMode)){ state.mode = state.settings.startMode; }
@@ -127,6 +151,8 @@ function resolvedTheme(){ const t = state.settings.theme||'system'; if(t==='dark
 function applyTheme(){ const th = resolvedTheme(); if(th==='dark') document.documentElement.setAttribute('data-theme','dark'); else document.documentElement.removeAttribute('data-theme'); const meta=document.getElementById('meta-theme-color'); if(meta) meta.setAttribute('content', th==='dark'? '#202124':'#1a73e8'); }
 if(darkMQ.addEventListener) darkMQ.addEventListener('change', ()=>{ if((state.settings.theme||'system')==='system') applyTheme(); });
 applyTheme();
+function cardStartFlipped(){ return (state.settings && state.settings.cardStart)==='back'; }
+cardState.flipped = cardStartFlipped();
 /* bookmarks / mistakes helpers */
 const bmList = () => state.bookmarks[mode()];
 const mkList = () => state.mistakes[mode()];
@@ -164,6 +190,94 @@ function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.fl
 function isCorrect(q, sel){ const ans = Array.isArray(q.answer)? q.answer : [q.answer]; const s = (sel||[]).slice().sort((x,y)=>x-y); return s.length===ans.length && s.every((v,i)=>v===ans.slice().sort((x,y)=>x-y)[i]); }
 function ansText(q){ const ans = Array.isArray(q.answer)? q.answer : [q.answer]; return ans.map(i=>q.choices[i]).join(' / '); }
 
+/* ---------- term links (L2) ---------- */
+const termIndexCache = {};
+function termVariants(){
+  const key = mode();
+  if(termIndexCache[key]) return termIndexCache[key];
+  const map = new Map();
+  const add = (v,t,kind)=>{ v = (v||'').trim(); if(v.length>=2 && !map.has(v)) map.set(v, {t, kind:kind||'name'}); };
+  const hira2kata = s => s.replace(/[ぁ-ん]/g, c => String.fromCharCode(c.charCodeAt(0)+0x60));
+  for(const t of Ts()){
+    add(t.term, t);
+    const m = String(t.term).match(/^(.*?)[（(]([^（）()]+)[）)]$/);
+    if(m){ add(m[1], t); add(m[2], t); }
+    /* 読み（カタカナ表記）もバリアントにする。本文がカタカナ表記のモード（gcloud等）でもリンクが付くように */
+    const r = (t.reading||'').trim();
+    if(r.length>=3 && /^[ぁ-んァ-ヶー]+$/.test(r)){ add(r, t, 'kana'); add(hira2kata(r), t, 'kata'); }
+  }
+  const variants = [...map.entries()].map(([v,info])=>({v, t:info.t, kind:info.kind, lower: v.toLowerCase(), ascii: /^[\x00-\x7F]+$/.test(v)}));
+  variants.sort((a,b)=>b.v.length-a.v.length);
+  termIndexCache[key] = variants;
+  return variants;
+}
+/* テキスト中の用語を用語集へのリンク（clickable=true）または視覚マークのみ（false）に変換する。用語の前後に空白は足さない */
+function linkTermsHTML(text, clickable){
+  const variants = termVariants();
+  const src = String(text==null?'':text);
+  if(!variants.length) return esc(src);
+  let out='', i=0;
+  while(i<src.length){
+    let hit=null;
+    for(const e of variants){
+      const v=e.v;
+      if(i+v.length>src.length) continue;
+      if(src.substr(i,v.length)===v || (e.ascii && src.substr(i,v.length).toLowerCase()===e.lower)){ hit=e; break; }
+    }
+    if(hit){
+      if(hit.ascii){
+        const before = i>0? src[i-1]:''; const after = i+hit.v.length<src.length? src[i+hit.v.length]:'';
+        if(/[A-Za-z0-9]/.test(before) || /[A-Za-z0-9]/.test(after)){ out+=esc(src[i]); i++; continue; }
+      }
+      if(hit.kind==='kata'){
+        /* カタカナ複合語の途中（例：データセンター内の「データ」）ではリンクしない */
+        const before = i>0? src[i-1]:''; const after = i+hit.v.length<src.length? src[i+hit.v.length]:'';
+        if(/[ァ-ヶー]/.test(before) || /[ァ-ヶー]/.test(after)){ out+=esc(src[i]); i++; continue; }
+      }
+      const matched = src.substr(i, hit.v.length);
+      out += clickable
+        ? `<span class="term-link" data-term="${esc(hit.t.term)}" role="button" tabindex="0">${esc(matched)}</span>`
+        : `<span class="term-mark">${esc(matched)}</span>`;
+      i += hit.v.length;
+    } else { out += esc(src[i]); i++; }
+  }
+  return out;
+}
+let lastTermName = null;
+function openTerm(name){
+  const t = Ts().find(x=>x.term===name); if(!t) return;
+  lastTermName = t.term;
+  document.getElementById('tm-sec').textContent = t.section + (M().sections[t.section]? ' '+M().sections[t.section] : '');
+  document.getElementById('tm-title').textContent = t.term;
+  const rd = document.getElementById('tm-reading'); rd.textContent = t.reading? '（'+t.reading+'）' : ''; rd.style.display = t.reading? '' : 'none';
+  document.getElementById('tm-def').textContent = t.definition;
+  document.getElementById('term-modal').hidden = false;
+  document.getElementById('tm-close').focus();
+}
+function closeTerm(){ document.getElementById('term-modal').hidden = true; }
+
+/* ---------- 出典表示 (L7) ---------- */
+const MODE_SOURCES = {
+  cdl: '出典：Google Cloud 公式試験ガイド（Cloud Digital Leader、2026-08-12改定版）・Google Cloud 公式ドキュメント／確認日：2026-11-26',
+  genai: '出典：Google Cloud 公式試験ガイド（Generative AI Leader）・Google Cloud 公式ドキュメント／確認日：2026-11-26',
+  nlm: '出典：NotebookLM 公式ヘルプ（Google 公式ヘルプ）／確認日：2026-11-26',
+  gcloud: '出典：Google Cloud 公式ドキュメント／確認日：2026-11-26',
+  all: '出典：Google Cloud 公式試験ガイド（Cloud Digital Leader 2026-08-12改定版／Generative AI Leader）・Google Cloud 公式ドキュメント・NotebookLM 公式ヘルプ／確認日：2026-11-26'
+};
+function sourceNote(){ const s = MODE_SOURCES[mode()]; return s? `<p class="mut srcnote">${esc(s)}</p>` : ''; }
+function summaryLink(){ return `<div class="btnrow"><a class="btn sec" href="summary.pdf" target="_blank" rel="noopener">要点まとめPDFを開く</a></div>`; }
+/* レッスンの学習メタ（L9）: 前提知識・到達目標は本文の前、よくある誤解は本文の後ろに簡潔に表示 */
+function lessonMetaHTML(l){
+  const mt = l && l.meta; if(!mt) return {pre:'', post:''};
+  const arr = a => Array.isArray(a)? a.filter(x=>x && String(x).trim()) : [];
+  const pre = arr(mt.prerequisites), goals = arr(mt.goals), mis = arr(mt.misconceptions);
+  const lt = s => linkTermsHTML(s, true);
+  const preHTML = (pre.length || goals.length)
+    ? `<div class="lesson-meta">${pre.length? `<p><b>前提知識：</b>${pre.map(lt).join('／')}</p>`:''}${goals.length? `<p><b>到達目標</b></p><ul>${goals.map(g=>`<li>${lt(g)}</li>`).join('')}</ul>`:''}</div>` : '';
+  const postHTML = mis.length? `<div class="misconceptions"><h3>よくある誤解</h3><ul>${mis.map(x=>`<li>${lt(x)}</li>`).join('')}</ul></div>` : '';
+  return {pre: preHTML, post: postHTML};
+}
+
 /* ---------- diagram ---------- */
 function diagramSVG(caption){
   const c = caption;
@@ -195,22 +309,23 @@ function diagramSVG(caption){
   return `<svg viewBox="0 0 400 150" role="img" aria-label="${esc(caption)}">${inner}</svg>`;
 }
 function renderBody(body){
+  const lt = s => linkTermsHTML(s, true);
   const parts = String(body).split(/(\[図:[^\]]+\])/g);
   let html='';
   for(const part of parts){
     const fm = part.match(/^\[図:\s*(.+)\]$/);
-    if(fm){ html += `<figure class="diagram">${diagramSVG(fm[1])}<figcaption>図：${esc(fm[1])}</figcaption></figure>`; continue; }
+    if(fm){ html += `<figure class="diagram">${diagramSVG(fm[1])}<figcaption>図：${lt(fm[1])}</figcaption></figure>`; continue; }
     for(const block of part.split(/\n{2,}/)){
       const lines = block.split(/\n/).map(x=>x.trim()).filter(Boolean);
       if(!lines.length) continue;
-      if(lines.length===1 && lines[0].startsWith('## ')){ html += `<h3>${esc(lines[0].slice(3))}</h3>`; continue; }
-      if(lines.every(l=>l.startsWith('- '))){ html += '<ul>' + lines.map(l=>`<li>${esc(l.slice(2))}</li>`).join('') + '</ul>'; continue; }
+      if(lines.length===1 && lines[0].startsWith('## ')){ html += `<h3>${lt(lines[0].slice(3))}</h3>`; continue; }
+      if(lines.every(l=>l.startsWith('- '))){ html += '<ul>' + lines.map(l=>`<li>${lt(l.slice(2))}</li>`).join('') + '</ul>'; continue; }
       // mixed block: headings/lists inline
       let buf=[];
-      const flush=()=>{ if(buf.length){ html += `<p>${esc(buf.join(' '))}</p>`; buf=[]; } };
+      const flush=()=>{ if(buf.length){ html += `<p>${lt(buf.join(' '))}</p>`; buf=[]; } };
       for(const l of lines){
-        if(l.startsWith('## ')){ flush(); html += `<h3>${esc(l.slice(3))}</h3>`; }
-        else if(l.startsWith('- ')){ flush(); html += `<ul><li>${esc(l.slice(2))}</li></ul>`; }
+        if(l.startsWith('## ')){ flush(); html += `<h3>${lt(l.slice(3))}</h3>`; }
+        else if(l.startsWith('- ')){ flush(); html += `<ul><li>${lt(l.slice(2))}</li></ul>`; }
         else buf.push(l);
       } flush();
     }
@@ -221,14 +336,27 @@ function renderBody(body){
 /* ---------- shell ---------- */
 const viewEl = document.getElementById('view');
 const tabsEl = document.getElementById('tabs');
+/* 用語リンクのイベント委譲（capture で先に処理し、カード反転やラベル既定動作と競合させない） */
+viewEl.addEventListener('click', e=>{
+  const el = e.target.closest ? e.target.closest('.term-link') : null;
+  if(el){ e.preventDefault(); e.stopPropagation(); openTerm(el.dataset.term); }
+}, true);
+viewEl.addEventListener('keydown', e=>{
+  const el = e.target.closest ? e.target.closest('.term-link') : null;
+  if(el && (e.key==='Enter' || e.key===' ')){ e.preventDefault(); e.stopPropagation(); openTerm(el.dataset.term); }
+}, true);
+document.getElementById('tm-close').addEventListener('click', closeTerm);
+document.getElementById('term-modal').addEventListener('click', e=>{ if(e.target.id==='term-modal') closeTerm(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && !document.getElementById('term-modal').hidden) closeTerm(); });
+document.getElementById('tm-glossary').addEventListener('click', ()=>{ if(lastTermName){ glossary = {q:lastTermName, section:'ALL'}; } closeTerm(); view='glossary'; currentLesson=null; render(); });
 function renderTabs(){
   const ms = document.getElementById('mode-switch');
   ms.innerHTML = MODE_IDS.map(id=>`<button type="button" data-mode="${esc(id)}" aria-pressed="${mode()===id}">${esc(shortLabel(id))}</button>`).join('');
   ms.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
   tabsEl.innerHTML = VIEWS.map(([k,label])=>{ const lb = k==='mock'? (M().mockDistribution? '模試':'総合テスト') : label; return `<button type="button" data-view="${k}" ${view===k?'aria-current="page"':''}>${lb}</button>`; }).join('');
-  tabsEl.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{ view=b.dataset.view; currentLesson=null; render(); }));
+  tabsEl.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{ view=b.dataset.view; currentLesson=null; if(view==='cards') cardState.flipped=cardStartFlipped(); render(); }));
 }
-function setMode(m){ if(state.mode===m) return; state.mode=m; save(); practice={section:'ALL',idx:0,checked:false,selected:[],listMode:'section',pfilter:'ALL',qid:null,q:'',limit:0,order:null,orderFor:null}; cardState={section:'ALL',idx:0,flipped:false}; glossary={q:'',section:'ALL'}; currentLesson=null; stopMockTimer(); mock=null; render(); }
+function setMode(m){ if(state.mode===m) return; state.mode=m; save(); practice={section:'ALL',idx:0,checked:false,selected:[],listMode:'section',pfilter:'ALL',qid:null,q:'',limit:0,order:null,orderFor:null}; cardState={section:'ALL',idx:0,flipped:cardStartFlipped()}; glossary={q:'',section:'ALL'}; currentLesson=null; stopMockTimer(); mock=null; render(); }
 function sectionChips(current, onAll){
   const secs = Object.keys(M().sections);
   return `<div class="chips" role="group" aria-label="セクション絞り込み"><button type="button" data-sec="ALL" aria-pressed="${current==='ALL'}">すべて</button>${secs.map(s=>`<button type="button" data-sec="${s}" aria-pressed="${current===s}">${s} ${esc(M().sections[s])}</button>`).join('')}</div>`;
@@ -251,16 +379,16 @@ function renderDashboard(){
   const weak = st.filter(x=>x.done>=3).sort((a,b)=>a.rate-b.rate)[0];
   viewEl.innerHTML = `<section class="card"><h2>${esc(M().label)}</h2>
   <div class="grid">
-    <div class="stat"><span class="mut">演習 回答済み</span><b>${done} / ${Qs().length}</b><span class="mut">${done? '正答率 '+Math.round(ok/done*100)+'%':''}</span></div>
+    <div class="stat"><span class="mut">演習 回答済み</span><b>${done} / ${Qs().length}</b><span class="mut">${done? '最新回答の正答率 '+Math.round(ok/done*100)+'%':''}</span></div>
     <div class="stat"><span class="mut">復習リスト</span><b>${mkList().length} 問</b><span class="mut">${mkList().length? '期限到来 '+srsDueCount()+'問':'なし'}</span></div>
     <div class="stat"><span class="mut">保存（ブックマーク）</span><b>${bmList().length} 問</b></div>
-    <div class="stat"><span class="mut">覚えたカード</span><b>${known} / ${Ts().length}</b></div>
+    <div class="stat"><span class="mut">覚えたフラッシュカード</span><b>${known} / ${Ts().length}</b></div>
     <div class="stat"><span class="mut">レッスン</span><b>${Ls().length} 本</b><span class="mut">読了 ${state.lessonsRead[mode()].length} 本</span></div>
-    <div class="stat"><span class="mut">直近の模試</span><b>${lastMock? lastMock.score+'%':'—'}</b><span class="mut">${lastMock? esc(lastMock.date):'未受験'}</span></div>
+    <div class="stat"><span class="mut">${M().mockDistribution? '直近の模試':'直近の総合テスト'}</span><b>${lastMock? lastMock.score+'%':'—'}</b><span class="mut">${lastMock? esc(lastMock.date):'未受験'}</span></div>
   </div></section>
   <section class="card"><h3>セクション別 演習進捗</h3>
-  ${st.map(x=>`<div><div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:space-between"><span>${x.s} ${esc(M().sections[x.s])}</span><span class="mut">${x.done}/${x.total}問 ・ 正答率 ${x.rate}%</span></div><div class="bar" role="progressbar" aria-valuenow="${x.cover}" aria-valuemin="0" aria-valuemax="100" aria-label="${x.s} 進捗"><i style="width:${x.cover}%"></i></div></div>`).join('')}
-  ${weak && weak.rate<100? `<p class="mut">弱点：${weak.s} ${esc(M().sections[weak.s])}（正答率 ${weak.rate}% ・ ${weak.done}問回答）</p>`:''}
+  ${st.map(x=>`<div><div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:space-between"><span>${x.s} ${esc(M().sections[x.s])}</span><span class="mut">${x.done}/${x.total}問 ・ 最新正答率 ${x.rate}%</span></div><div class="bar" role="progressbar" aria-valuenow="${x.cover}" aria-valuemin="0" aria-valuemax="100" aria-label="${x.s} 進捗"><i style="width:${x.cover}%"></i></div></div>`).join('')}
+  ${weak && weak.rate<100? `<p class="mut">弱点：${weak.s} ${esc(M().sections[weak.s])}（最新正答率 ${weak.rate}% ・ ${weak.done}問回答）</p>`:''}
   <div class="btnrow"><button class="btn" id="go-practice">問題演習へ</button>${mkList().length? '<button class="btn sec" id="go-review">復習する</button>':''}<button class="btn sec" id="go-mock">${M().mockDistribution? '模試を受ける':'総合テストを受ける'}</button>${M().notebookUrl? `<a class="btn sec" href="${esc(M().notebookUrl)}" target="_blank" rel="noopener">NotebookLMで開く</a>`:''}</div></section>`;
   document.getElementById('go-practice').addEventListener('click',()=>{view='practice';render();});
   const gr=document.getElementById('go-review'); if(gr) gr.addEventListener('click',()=>{view='review';render();});
@@ -271,17 +399,19 @@ function renderDashboard(){
 function renderLessons(){
   if(currentLesson){
     const l = currentLesson;
+    const meta = lessonMetaHTML(l);
     viewEl.innerHTML = `<section class="card"><button class="btn sec" id="back">← レッスン一覧</button>
     <div class="qmeta" style="margin-top:12px"><span class="tag">${l.section} ${esc(M().sections[l.section]||'')}</span></div>
-    <h2>${esc(l.title)}</h2>${renderBody(l.body)}
-    ${l.keyPoints && l.keyPoints.length? `<h3>要点</h3><ul>${l.keyPoints.map(k=>`<li>${esc(k)}</li>`).join('')}</ul>`:''}
-    <div class="btnrow"><button class="btn" id="read-btn">${state.lessonsRead[mode()].includes(l.id)?'読了済み ✓':'読了にする'}</button></div></section>`;
+    <h2>${esc(l.title)}</h2>${meta.pre}${renderBody(l.body)}
+    ${l.keyPoints && l.keyPoints.length? `<h3>要点</h3><ul>${l.keyPoints.map(k=>`<li>${linkTermsHTML(k, true)}</li>`).join('')}</ul>`:''}
+    ${meta.post}
+    <div class="btnrow"><button class="btn" id="read-btn">${state.lessonsRead[mode()].includes(l.id)?'読了済み ✓':'読了にする'}</button></div>${summaryLink()}${sourceNote()}</section>`;
     document.getElementById('back').addEventListener('click',()=>{currentLesson=null;render();});
     document.getElementById('read-btn').addEventListener('click',()=>{ const arr=state.lessonsRead[mode()]; if(!arr.includes(l.id)){arr.push(l.id); save();} render(); });
     return;
   }
   viewEl.innerHTML = `<section class="card"><h2>レッスン（${Ls().length}本）</h2>
-  ${Ls().map(l=>`<button type="button" class="lesson-item" data-lesson="${esc(l.id)}"><span><b>${esc(l.title)}</b><br><span class="mut">${l.section} ${esc(M().sections[l.section]||'')}</span></span>${state.lessonsRead[mode()].includes(l.id)?'<span class="tag">読了</span>':''}</button>`).join('')}</section>`;
+  ${Ls().map(l=>`<button type="button" class="lesson-item" data-lesson="${esc(l.id)}"><span><b>${esc(l.title)}</b><br><span class="mut">${l.section} ${esc(M().sections[l.section]||'')}</span></span>${state.lessonsRead[mode()].includes(l.id)?'<span class="tag">読了</span>':''}</button>`).join('')}${summaryLink()}${sourceNote()}</section>`;
   viewEl.querySelectorAll('[data-lesson]').forEach(b=>b.addEventListener('click',()=>{ currentLesson = Ls().find(x=>x.id===b.dataset.lesson); render(); viewEl.focus(); }));
 }
 
@@ -325,7 +455,7 @@ function bindPracticeHead(){
 }
 function renderPractice(){
   const list = practiceList();
-  if(!list.length){ viewEl.innerHTML = `<section class="card"><h2>問題演習</h2>${practiceHead()}<p>該当する問題がありません。</p></section>`; bindPracticeHead(); return; }
+  if(!list.length){ viewEl.innerHTML = `<section class="card"><h2>問題演習</h2>${practiceHead()}<p>該当する問題がありません。</p>${sourceNote()}</section>`; bindPracticeHead(); return; }
   practice.idx = Math.max(0, Math.min(practice.idx, list.length-1));
   const q = list[practice.idx];
   practice.qid = q.id;
@@ -336,14 +466,14 @@ function renderPractice(){
   const bmed = bmList().includes(q.id);
   viewEl.innerHTML = `<section class="card"><h2>問題演習</h2>${practiceHead()}
   <div class="qmeta"><span class="tag">${q.section} ${esc(M().sections[q.section]||'')}</span><span class="mut">${practice.idx+1} / ${list.length} 問</span>${q.multi?'<span class="tag">複数選択</span>':''}${rec?'<span class="tag">回答済み</span>':''}<button type="button" class="bmbtn" id="bm-toggle" aria-pressed="${bmed}" aria-label="この問題をブックマーク">${bmed?'★ 保存済み':'☆ 保存'}</button></div>
-  <p style="font-size:16px"><b>${esc(q.question)}</b></p>
-  <form id="pform">${practice.order.map(oi=>`<label class="choice ${practice.checked? ( (Array.isArray(q.answer)?q.answer:[q.answer]).includes(oi)?'correct': (selected.includes(oi)?'wrong':'')):''}"><input type="${inputType}" name="choice" value="${oi}" ${selected.includes(oi)?'checked':''} ${practice.checked?'disabled':''}><span>${esc(q.choices[oi])}</span></label>`).join('')}
-  ${practice.checked? `<div class="feedback ${isCorrect(q,selected)?'ok':'ng'}" role="status"><b>${isCorrect(q,selected)?'正解です':'不正解です'}</b><br>正解：${esc(ansText(q))}<br>${esc(q.explanation)}</div>`:''}
+  <p style="font-size:16px"><b>${linkTermsHTML(q.question, practice.checked)}</b></p>
+  <form id="pform">${practice.order.map(oi=>`<label class="choice ${practice.checked? ( (Array.isArray(q.answer)?q.answer:[q.answer]).includes(oi)?'correct': (selected.includes(oi)?'wrong':'')):''}"><input type="${inputType}" name="choice" value="${oi}" ${selected.includes(oi)?'checked':''} ${practice.checked?'disabled':''}><span>${linkTermsHTML(q.choices[oi], practice.checked)}</span></label>`).join('')}
+  ${practice.checked? `<div class="feedback ${isCorrect(q,selected)?'ok':'ng'}" role="status"><b>${isCorrect(q,selected)?'正解です':'不正解です'}</b><br>正解：${linkTermsHTML(ansText(q), true)}<br>${linkTermsHTML(q.explanation, true)}</div>`:''}
   <div class="btnrow">
     <button type="button" class="btn sec" id="prev" ${practice.idx===0?'disabled':''}>前へ</button>
     ${practice.checked? '<button type="button" class="btn sec" id="retry">解き直す</button>' : '<button type="submit" class="btn">回答する</button>'}
     <button type="button" class="btn sec" id="next" ${practice.idx>=list.length-1?'disabled':''}>次へ</button>
-  </div></form></section>`;
+  </div></form>${sourceNote()}</section>`;
   bindPracticeHead();
   document.getElementById('bm-toggle').addEventListener('click',()=>{ toggleBookmark(q.id); render(); });
   viewEl.querySelectorAll('input[name="choice"]').forEach(inp=>inp.addEventListener('change',()=>{
@@ -416,8 +546,8 @@ function renderMock(){
   const inputType = q.multi? 'checkbox':'radio';
   viewEl.innerHTML = `<section class="card">
   <div class="qmeta"><span class="timer" id="timer">${fmtTime(mock.endsAt? mock.endsAt-Date.now() : Date.now()-(mock.startedAt||Date.now()))}</span><span class="mut">${mock.endsAt? '残り時間':'経過時間'}</span><span class="tag">${q.section}</span><span class="mut">${mock.idx+1} / ${mock.ids.length} 問</span>${q.multi?'<span class="tag">複数選択</span>':''}<button type="button" class="bmbtn" id="mflag" aria-pressed="${!!(mock.flags && mock.flags[q.id])}">${mock.flags && mock.flags[q.id]? '⚑ 見直し':'⚐ 見直し'}</button></div>
-  <p style="font-size:16px"><b>${esc(q.question)}</b></p>
-  ${q.choices.map((c,i)=>`<label class="choice"><input type="${inputType}" name="mchoice" value="${i}" ${sel.includes(i)?'checked':''}><span>${esc(c)}</span></label>`).join('')}
+  <p style="font-size:16px"><b>${linkTermsHTML(q.question, false)}</b></p>
+  ${q.choices.map((c,i)=>`<label class="choice"><input type="${inputType}" name="mchoice" value="${i}" ${sel.includes(i)?'checked':''}><span>${linkTermsHTML(c, false)}</span></label>`).join('')}
   <div class="btnrow"><button class="btn sec" id="mprev" ${mock.idx===0?'disabled':''}>前へ</button><button class="btn sec" id="mnext" ${mock.idx>=mock.ids.length-1?'disabled':''}>次へ</button><button class="btn" id="msubmit">提出する</button><button class="btn sec" id="mpause">中断する</button></div>
   <h3>問題一覧</h3><div class="overview">${mock.ids.map((id,i)=>`<button type="button" data-midx="${i}" class="${mock.answers[id] && mock.answers[id].length?'done':''} ${mock.flags && mock.flags[id]?'flag':''} ${i===mock.idx?'cur':''}" aria-label="${i+1}問目へ${mock.flags && mock.flags[id]?'（見直しフラグ）':''}">${i+1}</button>`).join('')}</div>
   </section>`;
@@ -452,7 +582,7 @@ function renderMockResult(){
   </tbody></table>
   <div class="btnrow"><button class="btn sec" id="again">${exam? '模試トップへ':'テストトップへ'}</button></div></section>
   <section class="card"><h2>全問レビュー</h2>
-  ${mock.ids.map((id,i)=>{ const q=Qs().find(x=>x.id===id); const sel=mock.answers[id]||[]; const ok=isCorrect(q,sel); const bmed=bmList().includes(id); return `<div class="review"><div class="qmeta"><span class="tag">${q.section}</span><span class="tag">${ok?'正解':'不正解'}</span><button type="button" class="bmbtn" data-bm="${esc(id)}" aria-pressed="${bmed}" aria-label="この問題をブックマーク">${bmed?'★ 保存済み':'☆ 保存'}</button></div><p><b>${i+1}. ${esc(q.question)}</b></p><p>あなたの回答：${sel.length? sel.map(x=>esc(q.choices[x])).join(' / '):'（無回答）'}<br>正解：${esc(ansText(q))}<br><span class="mut">${esc(q.explanation)}</span></p></div>`; }).join('')}
+  ${mock.ids.map((id,i)=>{ const q=Qs().find(x=>x.id===id); const sel=mock.answers[id]||[]; const ok=isCorrect(q,sel); const bmed=bmList().includes(id); return `<div class="review"><div class="qmeta"><span class="tag">${q.section}</span><span class="tag">${ok?'正解':'不正解'}</span><button type="button" class="bmbtn" data-bm="${esc(id)}" aria-pressed="${bmed}" aria-label="この問題をブックマーク">${bmed?'★ 保存済み':'☆ 保存'}</button></div><p><b>${i+1}. ${linkTermsHTML(q.question, true)}</b></p><p>あなたの回答：${sel.length? sel.map(x=>esc(q.choices[x])).join(' / '):'（無回答）'}<br>正解：${esc(ansText(q))}<br>${linkTermsHTML(q.explanation, true)}</p></div>`; }).join('')}
   </section>`;
   document.getElementById('again').addEventListener('click',()=>{ mock=null; render(); });
   viewEl.querySelectorAll('[data-bm]').forEach(b=>b.addEventListener('click',()=>{ toggleBookmark(b.dataset.bm); render(); }));
@@ -501,9 +631,10 @@ function renderStats(){
     <div class="stat"><span class="mut">再挑戦正答率</span><b>${rN? pct(rOk,rN)+'%':'—'}</b><span class="mut">2回目以降 ${rN} 回</span></div>
     <div class="stat"><span class="mut">通算正答率</span><b>${tN? pct(tOk,tN)+'%':'—'}</b><span class="mut">全 ${tN} 回の回答</span></div>
     <div class="stat"><span class="mut">復習の卒業</span><b>${Object.keys(state.srs[mode()]).length? srsDueCount()+'問が期限到来':'—'}</b><span class="mut">復習リスト ${mkList().length}問</span></div>
-  </div></section>
+  </div>
+  <p class="mut">初見正答率は各問題の最初の回答だけで集計し、再解答では上書きされません。再挑戦正答率は2回目以降の回答、通算正答率は全回答の集計です。ダッシュボードや下記の「最新正答率」は各問題の最新の回答で集計した別の指標です。</p></section>
   <section class="card"><h3>セクション別 到達度</h3>
-  ${st.map(x=>`<div><div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:space-between"><span>${x.s} ${esc(M().sections[x.s])}</span><span class="mut">到達 ${x.cover}%（${x.done}/${x.total}問）・ 正答率 ${x.rate}%</span></div><div class="bar" role="progressbar" aria-valuenow="${x.cover}" aria-valuemin="0" aria-valuemax="100" aria-label="${x.s} 到達度"><i style="width:${x.cover}%"></i></div></div>`).join('')}
+  ${st.map(x=>`<div><div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:space-between"><span>${x.s} ${esc(M().sections[x.s])}</span><span class="mut">到達 ${x.cover}%（${x.done}/${x.total}問）・ 最新正答率 ${x.rate}%</span></div><div class="bar" role="progressbar" aria-valuenow="${x.cover}" aria-valuemin="0" aria-valuemax="100" aria-label="${x.s} 到達度"><i style="width:${x.cover}%"></i></div></div>`).join('')}
   </section>`;
 }
 
@@ -518,6 +649,9 @@ function renderSettings(){
   <div class="chips" role="group" aria-label="起動時に開くモード">${MODE_IDS.map(id=>chip('startMode',id,shortLabel(id),sm)).join('')}${chip('startMode','last','前回のモード',sm)}</div>
   <h3>演習</h3>
   <div class="chips" role="group" aria-label="演習の設定"><button type="button" id="set-shuffle" aria-pressed="${!!state.settings.shuffleChoices}">選択肢シャッフル：${state.settings.shuffleChoices?'ON':'OFF'}</button></div>
+  <h3>フラッシュカード</h3>
+  <div class="chips" role="group" aria-label="カードの開始面">${chip('cardStart','front','表（用語）から',state.settings.cardStart||'front')}${chip('cardStart','back','裏（定義）から',state.settings.cardStart||'front')}</div>
+  <p class="mut">カードは左右スワイプでも前後に送れます。スワイプでは自己評価は付きません。</p>
   <h3>記録の管理</h3>
   <div class="btnrow" style="margin-top:4px">
     <button class="btn sec" id="set-export">エクスポート（JSON）</button>
@@ -557,16 +691,17 @@ function renderGlossary(){
 
 /* ---------- flashcards ---------- */
 function cardList(){ return cardState.section==='ALL'? Ts() : Ts().filter(t=>t.section===cardState.section); }
+let lastSwipeAt = 0;
 function renderCards(){
   const list = cardList();
-  if(!list.length){ viewEl.innerHTML = `<section class="card"><h2>フラッシュカード</h2>${sectionChips(cardState.section)}<p>該当する用語がありません。</p></section>`; bindChips(s=>{cardState.section=s;cardState.idx=0;cardState.flipped=false;render();}); return; }
+  if(!list.length){ viewEl.innerHTML = `<section class="card"><h2>フラッシュカード</h2>${sectionChips(cardState.section)}<p>該当する用語がありません。</p></section>`; bindChips(s=>{cardState.section=s;cardState.idx=0;cardState.flipped=cardStartFlipped();render();}); return; }
   cardState.idx = Math.min(cardState.idx, list.length-1);
   const t = list[cardState.idx]; const lv = state.cardLevel[mode()][t.term];
   viewEl.innerHTML = `<section class="card"><h2>フラッシュカード</h2>${sectionChips(cardState.section)}
-  <p class="mut">${cardState.idx+1} / ${list.length} ・ 覚えた ${state.known[mode()].length} 語 ・ カードをタップ（または Enter / Space）で反転</p>
-  <button type="button" class="flash" id="flash" aria-label="フラッシュカードを反転">
-    ${cardState.flipped? `<span class="mut">${t.section} ${esc(M().sections[t.section]||'')}</span><span>${esc(t.definition)}</span>` : `<span class="big">${esc(t.term)}</span>${t.reading?`<span class="mut">${esc(t.reading)}</span>`:''}<span class="tag">${t.section}</span>`}
-  </button>
+  <p class="mut">${cardState.idx+1} / ${list.length} ・ 覚えた ${state.known[mode()].length} 語 ・ カードをタップ（または Enter / Space）で反転、左右スワイプで送る</p>
+  <div class="flash" id="flash" role="button" tabindex="0" aria-label="フラッシュカードを反転">
+    ${cardState.flipped? `<span class="mut">${t.section} ${esc(M().sections[t.section]||'')}</span><span>${linkTermsHTML(t.definition, true)}</span>` : `<span class="big">${esc(t.term)}</span>${t.reading?`<span class="mut">${esc(t.reading)}</span>`:''}<span class="tag">${t.section}</span>`}
+  </div>
   <div class="btnrow">
     <button class="btn sec" id="cprev" ${cardState.idx===0?'disabled':''}>前へ</button>
     <button class="btn sec" id="cshuffle">シャッフル</button>
@@ -577,11 +712,29 @@ function renderCards(){
     <button class="btn sec" data-lv="1" aria-pressed="${lv===1}">あいまい</button>
     <button class="btn" data-lv="2" aria-pressed="${lv===2}">知ってる</button>
   </div></section>`;
-  bindChips(s=>{cardState.section=s;cardState.idx=0;cardState.flipped=false;render();});
-  document.getElementById('flash').addEventListener('click',()=>{cardState.flipped=!cardState.flipped; render(); document.getElementById('flash').focus();});
-  document.getElementById('cprev').addEventListener('click',()=>{cardState.idx--; cardState.flipped=false; render();});
-  document.getElementById('cnext').addEventListener('click',()=>{cardState.idx++; cardState.flipped=false; render();});
-  document.getElementById('cshuffle').addEventListener('click',()=>{ cardState.idx = Math.floor(Math.random()*list.length); cardState.flipped=false; render(); });
+  bindChips(s=>{cardState.section=s;cardState.idx=0;cardState.flipped=cardStartFlipped();render();});
+  const fl = document.getElementById('flash');
+  fl.addEventListener('click',()=>{ if(Date.now()-lastSwipeAt<400) return; cardState.flipped=!cardState.flipped; render(); const n=document.getElementById('flash'); if(n) n.focus(); });
+  fl.addEventListener('keydown',e=>{ if(e.target!==fl) return; if(e.key==='Enter' || e.key===' '){ e.preventDefault(); fl.click(); } });
+  /* スワイプ送り（L6）: 未回答扱い。記録は書かず、既存の自己評価も上書きせず、ラベル類も出さない */
+  let pDown = null;
+  fl.addEventListener('pointerdown',e=>{ pDown = {x:e.clientX, y:e.clientY}; });
+  fl.addEventListener('pointercancel',()=>{ pDown = null; });
+  fl.addEventListener('pointerup',e=>{
+    if(!pDown) return;
+    const dx = e.clientX - pDown.x, dy = e.clientY - pDown.y; pDown = null;
+    if(Math.abs(dx)>=48 && Math.abs(dx) > Math.abs(dy)*1.4){
+      lastSwipeAt = Date.now();
+      if(dx<0 && cardState.idx<list.length-1) cardState.idx++;
+      else if(dx>0 && cardState.idx>0) cardState.idx--;
+      else return;
+      cardState.flipped = cardStartFlipped();
+      render();
+    }
+  });
+  document.getElementById('cprev').addEventListener('click',()=>{cardState.idx--; cardState.flipped=cardStartFlipped(); render();});
+  document.getElementById('cnext').addEventListener('click',()=>{cardState.idx++; cardState.flipped=cardStartFlipped(); render();});
+  document.getElementById('cshuffle').addEventListener('click',()=>{ cardState.idx = Math.floor(Math.random()*list.length); cardState.flipped=cardStartFlipped(); render(); });
   viewEl.querySelectorAll('[data-lv]').forEach(b=>b.addEventListener('click',()=>{ const v=Number(b.dataset.lv); state.cardLevel[mode()][t.term]=v; const arr=state.known[mode()]; const i=arr.indexOf(t.term); if(v===2){ if(i<0) arr.push(t.term); } else if(i>=0) arr.splice(i,1); save(); render(); }));
 }
 
