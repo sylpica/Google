@@ -84,6 +84,9 @@ footer{max-width:960px;margin:0 auto;padding:6px 16px 18px;color:var(--mut);font
 .flash{touch-action:pan-y}
 .srcnote{margin-top:10px;font-size:12px}
 .lesson-meta{background:var(--bg);border-radius:8px;padding:8px 10px;margin:8px 0;font-size:13.5px}
+.lesson-img{margin:10px 0}
+.lesson-img img{width:100%;height:auto;border-radius:10px;display:block}
+.lesson-img figcaption{font-size:12.5px;color:var(--mut);margin-top:4px;text-align:center}
 .lesson-meta p{margin:3px 0}
 .lesson-meta ul{margin:2px 0;padding-left:18px}
 .lesson-meta li{margin:1px 0}
@@ -402,7 +405,7 @@ function renderLessons(){
     const meta = lessonMetaHTML(l);
     viewEl.innerHTML = `<section class="card"><button class="btn sec" id="back">← レッスン一覧</button>
     <div class="qmeta" style="margin-top:12px"><span class="tag">${l.section} ${esc(M().sections[l.section]||'')}</span></div>
-    <h2>${esc(l.title)}</h2>${meta.pre}${renderBody(l.body)}
+    <h2>${esc(l.title)}</h2>${meta.pre}${l.image? `<figure class="lesson-img"><img src="${esc(l.image)}" alt="${esc(l.imageCaption||'')}" loading="lazy"><figcaption>${esc(l.imageCaption||'')}</figcaption></figure>`:''}${renderBody(l.body)}
     ${l.keyPoints && l.keyPoints.length? `<h3>要点</h3><ul>${l.keyPoints.map(k=>`<li>${linkTermsHTML(k, true)}</li>`).join('')}</ul>`:''}
     ${meta.post}
     <div class="btnrow"><button class="btn" id="read-btn">${state.lessonsRead[mode()].includes(l.id)?'読了済み ✓':'読了にする'}</button></div>${summaryLink()}${sourceNote()}</section>`;
