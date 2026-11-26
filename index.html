@@ -18,7 +18,7 @@
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;color:var(--ink);background:var(--bg);line-height:1.5;overflow-wrap:break-word;word-break:normal}
-button{font:inherit;cursor:pointer}
+button{font:inherit;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 :focus-visible{outline:3px solid #8ab4f8;outline-offset:2px}
 header.top{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
 .top-inner{max-width:960px;margin:0 auto;padding:4px 16px;display:flex;flex-wrap:nowrap;gap:8px;align-items:center}
@@ -27,11 +27,11 @@ header.top{background:var(--card);border-bottom:1px solid var(--line);position:s
 .mode-switch::-webkit-scrollbar{display:none}
 .mode-switch button{flex:0 0 auto}
 a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
-.mode-switch button{border:0;background:var(--card);padding:3px 9px;min-height:30px;min-width:0;font-size:13.5px;font-weight:600;color:var(--mut);white-space:nowrap}
+.mode-switch button{border:0;background:var(--card);padding:3px 9px;min-height:36px;min-width:0;font-size:13.5px;font-weight:600;color:var(--mut);white-space:nowrap}
 .mode-switch button[aria-pressed="true"]{background:var(--blue);color:#fff}
 nav.tabs{max-width:960px;margin:0 auto;padding:0 16px 4px;display:flex;flex-wrap:nowrap;gap:5px;overflow-x:auto;scrollbar-width:none}
 nav.tabs::-webkit-scrollbar{display:none}
-nav.tabs button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:3px 9px;min-height:30px;min-width:0;font-size:13.5px;white-space:nowrap;flex:0 0 auto;color:var(--ink)}
+nav.tabs button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:3px 10px;min-height:38px;min-width:0;font-size:13.5px;white-space:nowrap;flex:0 0 auto;color:var(--ink)}
 nav.tabs button[aria-current="page"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 main{max-width:960px;margin:0 auto;padding:8px 16px 16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:11px 12px;margin-bottom:9px}
@@ -471,12 +471,13 @@ function renderPractice(){
   <div class="qmeta"><span class="tag">${q.section} ${esc(M().sections[q.section]||'')}</span><span class="mut">${practice.idx+1} / ${list.length} 問</span>${q.multi?'<span class="tag">複数選択</span>':''}${rec?'<span class="tag">回答済み</span>':''}<button type="button" class="bmbtn" id="bm-toggle" aria-pressed="${bmed}" aria-label="この問題をブックマーク">${bmed?'★ 保存済み':'☆ 保存'}</button></div>
   <p style="font-size:16px"><b>${linkTermsHTML(q.question, practice.checked)}</b></p>
   <form id="pform">${practice.order.map(oi=>`<label class="choice ${practice.checked? ( (Array.isArray(q.answer)?q.answer:[q.answer]).includes(oi)?'correct': (selected.includes(oi)?'wrong':'')):''}"><input type="${inputType}" name="choice" value="${oi}" ${selected.includes(oi)?'checked':''} ${practice.checked?'disabled':''}><span>${linkTermsHTML(q.choices[oi], practice.checked)}</span></label>`).join('')}
-  ${practice.checked? `<div class="feedback ${isCorrect(q,selected)?'ok':'ng'}" role="status"><b>${isCorrect(q,selected)?'正解です':'不正解です'}</b><br>正解：${linkTermsHTML(ansText(q), true)}<br>${linkTermsHTML(q.explanation, true)}</div>`:''}
   <div class="btnrow">
     <button type="button" class="btn sec" id="prev" ${practice.idx===0?'disabled':''}>前へ</button>
     ${practice.checked? '<button type="button" class="btn sec" id="retry">解き直す</button>' : '<button type="submit" class="btn">回答する</button>'}
     <button type="button" class="btn sec" id="next" ${practice.idx>=list.length-1?'disabled':''}>次へ</button>
-  </div></form>${sourceNote()}</section>`;
+  </div>
+  ${practice.checked? `<div class="feedback ${isCorrect(q,selected)?'ok':'ng'}" role="status"><b>${isCorrect(q,selected)?'正解です':'不正解です'}</b><br>正解：${linkTermsHTML(ansText(q), true)}<br>${linkTermsHTML(q.explanation, true)}</div>`:''}
+  </form>${sourceNote()}</section>`;
   bindPracticeHead();
   document.getElementById('bm-toggle').addEventListener('click',()=>{ toggleBookmark(q.id); render(); });
   viewEl.querySelectorAll('input[name="choice"]').forEach(inp=>inp.addEventListener('change',()=>{
